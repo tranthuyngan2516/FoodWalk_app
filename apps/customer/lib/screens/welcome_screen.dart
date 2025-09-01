@@ -1,10 +1,11 @@
-// lib/screens/welcome_screen.dart
-import 'dart:async';
+// import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/first_run.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({super.key});
+  const WelcomeScreen({super.key, this.devLock = false});
+  final bool devLock; // true => không setSeen, luôn ở Welcome
+
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
@@ -17,28 +18,47 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   late final AnimationController _ctrl;
   late final Animation<double> _progress; // 0..1
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _ctrl = AnimationController(vsync: this, duration: _animDuration);
+  //   _progress = CurvedAnimation(
+  //     parent: _ctrl,
+  //     curve: Curves.easeOutCubic,
+  //     reverseCurve: Curves.easeInCubic,
+  //   );
+
+  //   _ctrl.addStatusListener((s) async {
+  //     if (s == AnimationStatus.completed) {
+  //       try {
+  //         await FirstRunStore().setSeen();
+  //       } catch (_) {}
+  //       if (!mounted) return;
+  //       unawaited(Future.delayed(_holdAfter, () {
+  //         if (mounted) Navigator.of(context).pushReplacementNamed('/home');
+  //       }));
+  //     }
+  //   });
+
+  //   _ctrl.forward();
+  // }
+
+
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: _animDuration);
-    _progress = CurvedAnimation(
-      parent: _ctrl,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    );
-
+    // khi animation xong:
     _ctrl.addStatusListener((s) async {
       if (s == AnimationStatus.completed) {
-        try {
-          await FirstRunStore().setSeen();
-        } catch (_) {}
+        if (!widget.devLock) {
+          try {
+            await FirstRunStore().setSeen();
+          } catch (_) {}
+        }
         if (!mounted) return;
-        unawaited(Future.delayed(_holdAfter, () {
-          if (mounted) Navigator.of(context).pushReplacementNamed('/home');
-        }));
+        Navigator.of(context).pushReplacementNamed('/home');
       }
     });
-
     _ctrl.forward();
   }
 
@@ -75,9 +95,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                       'Chào mừng bạn trở lại 👋',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 28,
+                        fontSize: 32,
                         fontWeight: FontWeight.w800,
-                        height: 1.15,
+                        height: 1.5,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -122,7 +142,7 @@ class _ProgressScooterBar extends StatelessWidget {
         final clamped = progress.clamp(0.0, 1.0);
         final fillW = maxW * clamped;
 
-        // vị trí xe (để không “thò” ra ngoài)
+        // vị trí xe
         const minX = iconSize * 0.5;
         final maxX = maxW - iconSize * 0.5;
         final dx = (maxW * clamped).clamp(minX, maxX);
@@ -142,9 +162,8 @@ class _ProgressScooterBar extends StatelessWidget {
                 ),
               ),
 
-              // Thanh đã fill
               AnimatedContainer(
-                duration: const Duration(milliseconds: 260),
+                duration: const Duration(milliseconds: 400),
                 curve: Curves.easeOutCubic,
                 width: fillW,
                 height: barH,
@@ -156,10 +175,8 @@ class _ProgressScooterBar extends StatelessWidget {
                 ),
               ),
 
-              // Xe chạy — đặt CHỒNG LÊN thanh (nằm trên thanh)
               Positioned(
                 left: dx - iconSize / 2,
-                // hạ icon xuống để “đè” đúng lên thanh
                 top: (120 - barH) / 2 - (iconSize / 2) + 6,
                 child: const Icon(
                   Icons.delivery_dining_rounded,
@@ -226,4 +243,6 @@ class _GradientText extends StatelessWidget {
     );
     // (tùy chọn) có thể thêm shadow nếu muốn nổi hơn.
   }
+
+
 }
