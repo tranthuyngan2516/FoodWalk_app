@@ -1,0 +1,90 @@
+{
+  "users": {
+    "U_001": {
+      "id": "U_001",
+      "role": "customer",
+      "name": "Nguyen Van A",
+      "phone": "+84901112233",
+      "addresses": [
+        {
+          "label": "Nhà",
+          "address": "12 Le Loi, Q1",
+          "geo": {
+            "lat": 10.77,
+            "lng": 106.7
+          }
+        }
+      ],
+      "fcmTokens": []
+    },
+    "U_100": {
+      "id": "U_100",
+      "role": "driver",
+      "name": "Tran Van B",
+      "phone": "+84994445566",
+      "driver": {
+        "vehicleType": "motorbike",
+        "plateNumber": "59X1-123.45",
+        "online": true,
+        "activeOrderId": null
+      }
+    }
+  },
+  "restaurants": {
+    "R_001": {
+      "id": "R_001",
+      "name": "FoodWalk Burger",
+      "geo": {
+        "lat": 10.78,
+        "lng": 106.7
+      },
+      "isOpen": true
+    }
+  },
+  "menus": {
+    "M_001": {
+      "id": "M_001",
+      "restaurantId": "R_001",
+      "name": "Burger Bò",
+      "price": 59000,
+      "available": true
+    }
+  },
+  "orders": {
+    "O_0001": {
+      "id": "O_0001",
+      "customerId": "U_001",
+      "restaurantId": "R_001",
+      "driverId": "U_100",
+      "items": [
+        {
+          "menuId": "M_001",
+          "name": "Burger Bò",
+          "qty": 2,
+          "unitPrice": 59000,
+          "subtotal": 118000
+        }
+      ],
+      "fee": {
+        "items": 118000,
+        "delivery": 15000,
+        "discount": 0,
+        "total": 133000
+      },
+      "status": "DELIVERING",
+      "createdAt": 1691000000000
+    }
+  },
+  "driverLocations": {
+    "U_100": {
+      "driverId": "U_100",
+      "geo": {
+        "lat": 10.7805,
+        "lng": 106.7011
+      },
+      "speed": 20.4,
+      "heading": 180,
+      "updatedAt": 1691001234567
+    }
+  }
+}

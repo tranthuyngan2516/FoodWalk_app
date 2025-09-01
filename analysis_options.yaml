@@ -1,0 +1,18 @@
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+linter:
+  rules:
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
+    - always_use_package_imports
+    - avoid_print
+    - avoid_empty_else
+    - avoid_unnecessary_containers
+    - prefer_single_quotes
+    - sort_child_properties_last

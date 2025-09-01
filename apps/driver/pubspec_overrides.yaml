@@ -1,0 +1,12 @@
+# melos_managed_dependency_overrides: core,design_system,features_auth,features_maps,features_orders
+dependency_overrides:
+  core:
+    path: ../../packages/core
+  design_system:
+    path: ../../packages/design_system
+  features_auth:
+    path: ../../packages/features_auth
+  features_maps:
+    path: ../../packages/features_maps
+  features_orders:
+    path: ../../packages/features_orders

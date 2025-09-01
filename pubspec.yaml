@@ -1,0 +1,18 @@
+name: foodwalk_monorepo
+description: FoodWalk Monorepo với Flutter và Melos
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  melos: ^6.3.3
+
+melos:
+  name: foodwalk
+  packages:
+    - apps/**
+    - packages/**
+dependencies:
+  rive: ^0.13.20

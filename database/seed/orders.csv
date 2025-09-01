@@ -1,0 +1,2 @@
+id,customer_id,restaurant_id,driver_id,address_text,lat,lng,items_amount,delivery_fee,discount,total_amount,status,payment_method
+1,1,1,2,"12 Le Loi, Q1",10.77,106.7,118000,15000,0,133000,DELIVERING,COD

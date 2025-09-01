@@ -1,0 +1,4 @@
+id,restaurant_id,name,price,available
+1,1,Burger Bò,59000,True
+2,1,Khoai Tây Chiên,29000,True
+3,2,Bún Bò Đặc Biệt,69000,True

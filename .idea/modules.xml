@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/packages/core/melos_core.iml" filepath="$PROJECT_DIR$/packages/core/melos_core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/customer/melos_customer.iml" filepath="$PROJECT_DIR$/apps/customer/melos_customer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/design_system/melos_design_system.iml" filepath="$PROJECT_DIR$/packages/design_system/melos_design_system.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/driver/melos_driver.iml" filepath="$PROJECT_DIR$/apps/driver/melos_driver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/features_auth/melos_features_auth.iml" filepath="$PROJECT_DIR$/packages/features_auth/melos_features_auth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/features_maps/melos_features_maps.iml" filepath="$PROJECT_DIR$/packages/features_maps/melos_features_maps.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/features_orders/melos_features_orders.iml" filepath="$PROJECT_DIR$/packages/features_orders/melos_features_orders.iml" />
+      <module fileurl="file://$PROJECT_DIR$/melos_foodwalk.iml" filepath="$PROJECT_DIR$/melos_foodwalk.iml" />
+    </modules>
+  </component>
+</project>

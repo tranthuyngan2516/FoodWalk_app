@@ -1,0 +1,41 @@
+name: customer
+description: FoodWalk - Ứng dụng Khách hàng
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.0
+  go_router: ^14.0.0
+  design_system:
+    path: ../../packages/design_system
+  features_auth:
+    path: ../../packages/features_auth
+  features_orders:
+    path: ../../packages/features_orders
+  features_maps:
+    path: ../../packages/features_maps
+  google_fonts: ^6.3.1
+  shared_preferences: ^2.5.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+   
+flutter_launcher_icons:
+  ios: true
+  image_path_ios: assets/customer.png
+  remove_alpha_ios: true
+  # Nếu muốn làm luôn icon Android thì bật 2 dòng dưới:
+  android: true
+  image_path: assets/customer.png

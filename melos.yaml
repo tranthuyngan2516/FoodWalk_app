@@ -1,0 +1,25 @@
+name: foodwalk
+packages:
+  - apps/**
+  - packages/**
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+
+scripts:
+  analyze: melos exec -- flutter analyze
+  format: melos exec -- dart format .
+  test: melos exec -- flutter test
+  # Script để chạy cả hai ứng dụng cùng lúc
+  run:all: melos exec --parallel --depends-on="core" -- "flutter run"
+  # Script để chạy từng ứng dụng riêng biệt
+  run:customer: cd apps/customer && flutter run
+  run:driver: cd apps/driver && flutter run
+  # Script để chạy cả hai ứng dụng trên các port khác nhau
+  run:both: melos run run:customer & melos run run:driver
+  # Script để chạy iOS - Customer trên Simulator, Driver trên iPhone thật
+  run:ios:both: ./scripts/run_ios_both.sh
+  # Script để chạy từng ứng dụng iOS riêng biệt
+  run:ios:customer: cd apps/customer && flutter run -d ios
+  run:ios:driver: cd apps/driver && flutter run -d "00008101-0006613A1499A01E"

@@ -1,0 +1,4 @@
+id,role,name,phone,email,rating
+1,customer,Nguyen Van A,+84901112233,a@example.com,4.8
+2,driver,Tran Van B,+84994445566,b@example.com,4.9
+3,admin,Le Thi C,+84998887766,c@example.com,
