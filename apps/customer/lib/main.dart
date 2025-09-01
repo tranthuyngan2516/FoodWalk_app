@@ -54,6 +54,7 @@ class CustomerApp extends StatelessWidget {
 
       // Màn khởi động: quyết định Welcome hay Home
       home: const _Bootstrap(),
+      // home: const WelcomeScreen(devLock: true), // BẬT để luôn vào Welcome (dev)
     );
   }
 }

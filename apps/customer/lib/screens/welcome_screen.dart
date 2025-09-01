@@ -1,64 +1,52 @@
-// import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/first_run.dart';
+import '../widgets/scooter_icon.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key, this.devLock = false});
-  final bool devLock; // true => không setSeen, luôn ở Welcome
+  final bool devLock; // true => KHÔNG điều hướng, ở lại Welcome để bạn chỉnh UI
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
-  // ⏱ Điều chỉnh tổng thời gian 5–7 giây:
-  static const _animDuration = Duration(seconds: 7); // chạy 0→100%
-  static const _holdAfter = Duration(seconds: 3); // giữ sau khi đạt 100%
+  // Tổng thời gian: chạy 7s + giữ thêm 3s
+  static const _animDuration = Duration(seconds: 4);
+  static const _holdAfter = Duration(seconds: 1);
 
   late final AnimationController _ctrl;
   late final Animation<double> _progress; // 0..1
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _ctrl = AnimationController(vsync: this, duration: _animDuration);
-  //   _progress = CurvedAnimation(
-  //     parent: _ctrl,
-  //     curve: Curves.easeOutCubic,
-  //     reverseCurve: Curves.easeInCubic,
-  //   );
-
-  //   _ctrl.addStatusListener((s) async {
-  //     if (s == AnimationStatus.completed) {
-  //       try {
-  //         await FirstRunStore().setSeen();
-  //       } catch (_) {}
-  //       if (!mounted) return;
-  //       unawaited(Future.delayed(_holdAfter, () {
-  //         if (mounted) Navigator.of(context).pushReplacementNamed('/home');
-  //       }));
-  //     }
-  //   });
-
-  //   _ctrl.forward();
-  // }
-
-
   @override
   void initState() {
     super.initState();
-    // khi animation xong:
+
+    // ✅ KHỞI TẠO controller + curve
+    _ctrl = AnimationController(vsync: this, duration: _animDuration);
+    _progress = CurvedAnimation(
+      parent: _ctrl,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+
+    // Khi chạy xong: setSeen (nếu không phải devLock) + điều hướng sau 3s giữ
     _ctrl.addStatusListener((s) async {
       if (s == AnimationStatus.completed) {
         if (!widget.devLock) {
           try {
             await FirstRunStore().setSeen();
           } catch (_) {}
+          if (!mounted) return;
+          Future.delayed(_holdAfter, () {
+            if (mounted) {
+              Navigator.of(context).pushReplacementNamed('/home');
+            }
+          });
         }
-        if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed('/home');
       }
     });
+
     _ctrl.forward();
   }
 
@@ -77,9 +65,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
+            colors: [orange, orangeDark],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [orange, orangeDark],
           ),
         ),
         child: SafeArea(
@@ -88,11 +76,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
             child: AnimatedBuilder(
               animation: _progress,
               builder: (context, _) {
+                final p = _progress.value;
+                final percent = (p * 100).round();
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Chào mừng bạn trở lại 👋',
+                      'Chào mừng bạn 👋!',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 32,
@@ -102,19 +93,32 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Đang chuẩn bị trải nghiệm của bạn…',
+                      'Chờ một chút nhé...',
                       style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
 
                     const Spacer(),
 
-                    // 🎯 Thanh progress đặt ở GIỮA + xe chạy trên thanh
-                    _ProgressScooterBar(progress: _progress.value),
+                    // 🎯 Thanh progress ở GIỮA + xe chạy trên thanh
+                    _ProgressScooterBar(progress: p),
 
                     const Spacer(),
 
-                    // 🔤 Logo chữ FoodWalk thay cho progress ở dưới
+                    // 🔤 Logo/brand bên dưới
                     const _BrandLockup(),
+
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '$percent%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
                   ],
                 );
               },
@@ -139,13 +143,13 @@ class _ProgressScooterBar extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         final maxW = c.maxWidth;
-        final clamped = progress.clamp(0.0, 1.0);
-        final fillW = maxW * clamped;
+        final p = progress.clamp(0.0, 1.0);
+        final fillW = maxW * p;
 
-        // vị trí xe
+        // vị trí xe (không chạm mép)
         const minX = iconSize * 0.5;
         final maxX = maxW - iconSize * 0.5;
-        final dx = (maxW * clamped).clamp(minX, maxX);
+        final dx = (maxW * p).clamp(minX, maxX);
 
         return SizedBox(
           height: 120,
@@ -153,7 +157,7 @@ class _ProgressScooterBar extends StatelessWidget {
           child: Stack(
             alignment: Alignment.centerLeft,
             children: [
-              // Thanh nền
+              // Nền progress
               Container(
                 height: barH,
                 decoration: BoxDecoration(
@@ -162,6 +166,7 @@ class _ProgressScooterBar extends StatelessWidget {
                 ),
               ),
 
+              // Phần đã chạy
               AnimatedContainer(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeOutCubic,
@@ -175,13 +180,16 @@ class _ProgressScooterBar extends StatelessWidget {
                 ),
               ),
 
+              // Xe chạy trên thanh (căn giữa theo chiều dọc)
               Positioned(
                 left: dx - iconSize / 2,
-                top: (120 - barH) / 2 - (iconSize / 2) + 6,
-                child: const Icon(
-                  Icons.delivery_dining_rounded,
-                  color: Colors.white,
-                  size: iconSize,
+                top: (120 - iconSize) / 2, // ở giữa đúng tâm thanh
+                child: const RiderScooterIcon(
+                  size: 64, // khớp iconSize bạn đang dùng
+                  primary: Colors.white, // icon trắng trên nền cam
+                  accent: const Color(0xFFFFE2B7),
+                  showSmoke: true,
+                  showHeadlight: true,
                 ),
               ),
             ],
@@ -203,20 +211,20 @@ class _BrandLockup extends StatelessWidget {
       children: [
         _GradientText(
           'FoodWalk',
-          style:  TextStyle(
+          style: TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w900,
             letterSpacing: 0.5,
           ),
-          gradient:  LinearGradient(
+          gradient: LinearGradient(
             colors: [Colors.white, Color(0xFFFFE2B7)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
-         SizedBox(height: 6),
-         Text(
-          'Giao nhanh • Tươi ngon',
+        SizedBox(height: 6),
+        Text(
+          'Giao nhanh • Xế xịn',
           style: TextStyle(
             color: Colors.white70,
             fontSize: 16,
@@ -241,8 +249,5 @@ class _GradientText extends StatelessWidget {
           gradient.createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
       child: Text(text, style: style.copyWith(color: Colors.white)),
     );
-    // (tùy chọn) có thể thêm shadow nếu muốn nổi hơn.
   }
-
-
 }
