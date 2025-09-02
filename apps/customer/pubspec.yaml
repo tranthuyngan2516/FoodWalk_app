@@ -31,11 +31,13 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-   
+    - assets/app_icon/
+    - assets/images/scooter.png
+
 flutter_launcher_icons:
   ios: true
-  image_path_ios: assets/customer.png
+  image_path_ios: assets/app_icon/customer.png
   remove_alpha_ios: true
   # Nếu muốn làm luôn icon Android thì bật 2 dòng dưới:
   android: true
-  image_path: assets/customer.png
+  image_path: assets/app_icon/customer.png

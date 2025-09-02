@@ -11,9 +11,8 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
-  // Tổng thời gian: chạy 7s + giữ thêm 3s
-  static const _animDuration = Duration(seconds: 4);
-  static const _holdAfter = Duration(seconds: 1);
+  static const _animDuration = Duration(seconds: 3);
+  static const _holdAfter = Duration(milliseconds: 900);
 
   late final AnimationController _ctrl;
   late final Animation<double> _progress; // 0..1
@@ -132,46 +131,60 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
 /// Thanh progress custom + xe chạy trên thanh
 class _ProgressScooterBar extends StatelessWidget {
-  const _ProgressScooterBar({required this.progress});
-  final double progress;
+  const _ProgressScooterBar({
+    required this.progress,
+    this.scooterSize = 64, // KÍCH THƯỚC ICON
+    this.barHeight = 16, // ĐỘ DÀY THANH
+    this.scooterOffset = 7, // NÂNG LÊN/XUỐNG (px). Dương = nâng lên
+    this.lead = 0.00, // 👈 xe chạy trước 3% chiều rộng thanh
+  });
 
+  final double progress;
+  final double scooterSize;
+  final double barHeight;
+  final double scooterOffset;
+  final double lead;
   @override
   Widget build(BuildContext context) {
-    const barH = 16.0;
-    const iconSize = 64.0;
+    return LayoutBuilder(builder: (context, c) {
+      final w = c.maxWidth;
+      final p = progress.clamp(0.0, 1.0);
 
-    return LayoutBuilder(
-      builder: (context, c) {
-        final maxW = c.maxWidth;
-        final p = progress.clamp(0.0, 1.0);
-        final fillW = maxW * p;
+      // chiều cao tổng: đủ chứa icon + một ít đệm
+      final trackH = scooterSize + 24;
 
-        // vị trí xe (không chạm mép)
-        const minX = iconSize * 0.5;
-        final maxX = maxW - iconSize * 0.5;
-        final dx = (maxW * p).clamp(minX, maxX);
+      // vị trí ngang (không cho icon chạm mép)
+      final minX = scooterSize * 0.5;
+      final maxX = w - scooterSize * 0.5;
+       // 👇 cộng thêm lead để xe đi trước (có clamp để không vượt quá cuối thanh)
+      final effectiveP = (p + lead).clamp(0.0, 1.0);
+      final dx = (w * effectiveP).clamp(minX, maxX);
 
-        return SizedBox(
-          height: 120,
-          width: double.infinity,
-          child: Stack(
-            alignment: Alignment.centerLeft,
-            children: [
-              // Nền progress
-              Container(
-                height: barH,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(999),
-                ),
+      // căn icon đúng giữa thanh rồi cộng offset người dùng
+      final top = (trackH - scooterSize) / 2 - scooterOffset;
+
+      return SizedBox(
+        height: trackH,
+        width: double.infinity,
+        child: Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            // nền bar
+            Container(
+              height: barHeight,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(999),
               ),
-
-              // Phần đã chạy
-              AnimatedContainer(
+            ),
+            // phần đã chạy
+            Align(
+              alignment: Alignment.centerLeft,
+              child: AnimatedContainer(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeOutCubic,
-                width: fillW,
-                height: barH,
+                height: barHeight,
+                width: w * p,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
                   gradient: const LinearGradient(
@@ -179,26 +192,21 @@ class _ProgressScooterBar extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Xe chạy trên thanh (căn giữa theo chiều dọc)
-              Positioned(
-                left: dx - iconSize / 2,
-                top: (120 - iconSize) / 2, // ở giữa đúng tâm thanh
-                child: const RiderScooterIcon(
-                  size: 64, // khớp iconSize bạn đang dùng
-                  primary: Colors.white, // icon trắng trên nền cam
-                  accent: const Color(0xFFFFE2B7),
-                  showSmoke: true,
-                  showHeadlight: true,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+            ),
+            // chiếc xe
+           // chiếc xe
+            Positioned(
+              left: dx - scooterSize / 2,
+              top: top,
+              child: ScooterIcon(size: scooterSize), // 👈 dùng PNG của bạn
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
+
 
 /// Logo chữ “FoodWalk” kiểu gradient + tagline
 class _BrandLockup extends StatelessWidget {
