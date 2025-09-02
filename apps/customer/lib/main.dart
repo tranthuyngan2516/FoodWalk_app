@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:flutter/cupertino.dart';
 import 'services/first_run.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/home_screen.dart';
@@ -13,9 +12,11 @@ Future<void> main() async {
   // 🔧 BẬT 1 LẦN để xoá cờ đã xem Welcome (sau khi thấy Welcome rồi thì đổi lại false)
   const bool kForceResetFirstRunThisBoot = true; // <-- đổi về false sau khi test xong
   if (kForceResetFirstRunThisBoot) {
-    // nếu muốn chỉ reset khi debug, giữ kDebugMode; còn không thì chỉ dùng cờ trên
-    await FirstRunStore().reset();
+    try {
+      await FirstRunStore().reset();
+    } catch (_) {}
   }
+
 
   runApp(const ProviderScope(child: CustomerApp()));
 }
@@ -26,7 +27,7 @@ class CustomerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FoodWalk - Customer',
+      title: 'FoodWalk',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -39,11 +40,11 @@ class CustomerApp extends StatelessWidget {
           },
         ),
       ),
-      // Ẩn bàn phím khi chạm ra ngoài
+      // ✅ Ẩn bàn phím an toàn (tránh child null)
       builder: (context, child) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: child,
+        child: child ?? const SizedBox.shrink(),
       ),
 
       routes: {
@@ -68,21 +69,65 @@ class _Bootstrap extends StatefulWidget {
 class _BootstrapState extends State<_Bootstrap> {
   late final Future<bool> _firstLaunch;
 
-  @override
+   @override
   void initState() {
     super.initState();
     _firstLaunch = FirstRunStore().isFirstLaunch();
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return FutureBuilder<bool>(
+  //     future: _firstLaunch,
+  //     builder: (context, snap) {
+  //       if (!snap.hasData) {
+  //         return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  //       }
+  //       final first = snap.data!;
+  //       return first ? const WelcomeScreen() : const HomeScreen();
+  //     },
+  //   );
+  // }
+
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
       future: _firstLaunch,
       builder: (context, snap) {
-        if (!snap.hasData) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        if (snap.connectionState != ConnectionState.done) {
+          // ✅ Loading iOS-friendly
+          return const Scaffold(
+            body: Center(child: CupertinoActivityIndicator(radius: 14)),
+          );
         }
-        final first = snap.data!;
+
+        if (snap.hasError) {
+          // ✅ Trạng thái lỗi (ví dụ: storage trục trặc)
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(CupertinoIcons.exclamationmark_triangle, size: 40),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Có lỗi khi khởi tạo. Thử mở lại ứng dụng.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => setState(() {}),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final first = snap.data ?? true;
         return first ? const WelcomeScreen() : const HomeScreen();
       },
     );
