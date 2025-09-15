@@ -4,55 +4,93 @@ import '../widgets/scooter_icon.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key, this.devLock = false});
-  final bool devLock; // true => KHÔNG điều hướng, ở lại Welcome để bạn chỉnh UI
+  final bool devLock;
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
-  static const _animDuration = Duration(seconds: 3);
   static const _holdAfter = Duration(milliseconds: 900);
 
-  late final AnimationController _ctrl;
-  late final Animation<double> _progress; // 0..1
+  late final AnimationController _progressCtrl; // ✅ controller riêng cho progress 0..1
+  bool _exiting = false;
+
+  bool get _reduceMotion => MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
   @override
   void initState() {
     super.initState();
 
-    // ✅ KHỞI TẠO controller + curve
-    _ctrl = AnimationController(vsync: this, duration: _animDuration);
-    _progress = CurvedAnimation(
-      parent: _ctrl,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
+    _progressCtrl = AnimationController(
+      vsync: this,
+      lowerBound: 0,
+      upperBound: 1,
+      value: 0, // bắt đầu từ 0
     );
 
-    // Khi chạy xong: setSeen (nếu không phải devLock) + điều hướng sau 3s giữ
-    _ctrl.addStatusListener((s) async {
-      if (s == AnimationStatus.completed) {
-        if (!widget.devLock) {
-          try {
-            await FirstRunStore().setSeen();
-          } catch (_) {}
-          if (!mounted) return;
-          Future.delayed(_holdAfter, () {
-            if (mounted) {
-              Navigator.of(context).pushReplacementNamed('/home');
-            }
-          });
-        }
-      }
-    });
-
-    _ctrl.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runStartupFlow());
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _progressCtrl.dispose();
     super.dispose();
+  }
+
+  // Animate mượt tới 'to' (không bao giờ tua lùi)
+  Future<void> _setProgressSmooth(double to) async {
+    to = to.clamp(0, 1);
+    if (to <= _progressCtrl.value) return;
+    final delta = to - _progressCtrl.value;
+
+    final base = _reduceMotion ? 140 : 420; // ms cho delta = 1
+    final dur = Duration(milliseconds: (base * delta).clamp(120, 600).round());
+
+    try {
+      await _progressCtrl.animateTo(
+        to,
+        duration: dur,
+        curve: Curves.easeOutCubic,
+      );
+    } catch (_) {
+      // ignore nếu dispose giữa chừng
+    }
+  }
+
+  Future<void> _runStartupFlow() async {
+    try {
+      await FirstRunStore().setSeen();
+    } catch (_) {}
+
+    // Thay các delay dưới bằng tác vụ thật và gọi _setProgressSmooth(...) sau mỗi bước
+    await _setProgressSmooth(0.20);
+    await Future.delayed(const Duration(milliseconds: 350));
+
+    await _setProgressSmooth(0.45);
+    await Future.delayed(const Duration(milliseconds: 450));
+
+    await _setProgressSmooth(0.70);
+    await Future.delayed(const Duration(milliseconds: 450));
+
+    await _setProgressSmooth(0.90);
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    await _setProgressSmooth(1.0);
+    await Future.delayed(
+        _reduceMotion ? const Duration(milliseconds: 150) : const Duration(milliseconds: 250));
+
+    if (!mounted) return;
+    await Future.delayed(_holdAfter);
+    if (!mounted || widget.devLock) return;
+
+    setState(() => _exiting = true);
+    await Future.delayed(
+        _reduceMotion ? const Duration(milliseconds: 120) : const Duration(milliseconds: 260));
+    if (!mounted) return;
+
+    // Nếu dùng GoRouter thì đổi dòng dưới thành: context.go('/home');
+    Navigator.of(context).pushReplacementNamed('/home');
   }
 
   @override
@@ -61,27 +99,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     const orangeDark = Color(0xFFDD6F00);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [orange, orangeDark],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      body: AnimatedOpacity(
+        opacity: _exiting ? 0.0 : 1.0,
+        duration:
+            _reduceMotion ? const Duration(milliseconds: 120) : const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [orange, orangeDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 28, 22, 24),
-            child: AnimatedBuilder(
-              animation: _progress,
-              builder: (context, _) {
-                final p = _progress.value;
-                final percent = (p * 100).round();
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(22, 28, 22, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _FadeSlide(
+                    delay: Duration(milliseconds: 40),
+                    child: Text(
                       'Chào mừng bạn 👋!',
                       style: TextStyle(
                         color: Colors.white,
@@ -90,37 +129,66 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                  ),
+                  const SizedBox(height: 8),
+                  const _FadeSlide(
+                    delay: Duration(milliseconds: 120),
+                    child: Text(
                       'Chờ một chút nhé...',
                       style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
+                  ),
 
-                    const Spacer(),
+                  const Spacer(),
 
-                    // 🎯 Thanh progress ở GIỮA + xe chạy trên thanh
-                    _ProgressScooterBar(progress: p),
+                  // 🎯 Progress bar mượt theo _progressCtrl.value
+                  AnimatedBuilder(
+                    animation: _progressCtrl,
+                    builder: (context, _) => _ProgressScooterBar(progress: _progressCtrl.value),
+                  ),
 
-                    const Spacer(),
+                  const Spacer(),
 
-                    // 🔤 Logo/brand bên dưới
-                    const _BrandLockup(),
+                  const _FadeSlide(
+                    delay: Duration(milliseconds: 220),
+                    from: Offset(0, .14),
+                    child: _BrandLockup(),
+                  ),
 
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        '$percent%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
+                  const SizedBox(height: 10),
+
+                  // % mượt cùng controller
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: AnimatedBuilder(
+                      animation: _progressCtrl,
+                      builder: (context, _) {
+                        final percent = (_progressCtrl.value * 100).clamp(0, 100).round();
+                        return AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 180),
+                          transitionBuilder: (child, anim) {
+                            final slide =
+                                Tween<Offset>(begin: const Offset(0, .25), end: Offset.zero)
+                                    .animate(anim);
+                            return FadeTransition(
+                                opacity: anim,
+                                child: SlideTransition(position: slide, child: child));
+                          },
+                          child: Text(
+                            '$percent%',
+                            key: ValueKey(percent),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                );
-              },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -129,38 +197,66 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 }
 
+/// Fade + slide nhẹ
+class _FadeSlide extends StatelessWidget {
+  const _FadeSlide({
+    required this.child,
+    this.delay = Duration.zero,
+    this.from = const Offset(0, .10),
+  });
+
+  final Widget child;
+  final Duration delay;
+  final Duration duration = const Duration(milliseconds: 420);
+  final Offset from;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final dur = reduce ? const Duration(milliseconds: 180) : duration;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: dur,
+      curve: Curves.easeOutCubic,
+      builder: (context, t, _) {
+        final dy = (1 - t) * from.dy * 40;
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(offset: Offset(0, dy), child: child),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
 /// Thanh progress custom + xe chạy trên thanh
 class _ProgressScooterBar extends StatelessWidget {
   const _ProgressScooterBar({
     required this.progress,
-    this.scooterSize = 64, // KÍCH THƯỚC ICON
-    this.barHeight = 16, // ĐỘ DÀY THANH
-    this.scooterOffset = 7, // NÂNG LÊN/XUỐNG (px). Dương = nâng lên
-    this.lead = 0.00, // 👈 xe chạy trước 3% chiều rộng thanh
   });
 
   final double progress;
-  final double scooterSize;
-  final double barHeight;
-  final double scooterOffset;
-  final double lead;
+  final double scooterSize = 36;
+  final double barHeight = 12;
+  final double scooterOffset = 2;
+  final double lead = 0.02; // dẫn trước (0..0.1)
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
       final p = progress.clamp(0.0, 1.0);
 
-      // chiều cao tổng: đủ chứa icon + một ít đệm
       final trackH = scooterSize + 24;
-
-      // vị trí ngang (không cho icon chạm mép)
       final minX = scooterSize * 0.5;
       final maxX = w - scooterSize * 0.5;
-       // 👇 cộng thêm lead để xe đi trước (có clamp để không vượt quá cuối thanh)
-      final effectiveP = (p + lead).clamp(0.0, 1.0);
+
+      final maxLead = (scooterSize / w).clamp(0.0, 0.1);
+      final effectiveP = (p + lead.clamp(0, maxLead)).clamp(0.0, 1.0);
       final dx = (w * effectiveP).clamp(minX, maxX);
 
-      // căn icon đúng giữa thanh rồi cộng offset người dùng
       final top = (trackH - scooterSize) / 2 - scooterOffset;
 
       return SizedBox(
@@ -169,7 +265,6 @@ class _ProgressScooterBar extends StatelessWidget {
         child: Stack(
           alignment: Alignment.centerLeft,
           children: [
-            // nền bar
             Container(
               height: barHeight,
               decoration: BoxDecoration(
@@ -177,28 +272,27 @@ class _ProgressScooterBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
             ),
-            // phần đã chạy
-            Align(
-              alignment: Alignment.centerLeft,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOutCubic,
-                height: barHeight,
-                width: w * p,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  gradient: const LinearGradient(
-                    colors: [Colors.white, Color(0xFFFFE2B7)],
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: p,
+                  child: Container(
+                    height: barHeight,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.white, Color(0xFFFFE2B7)],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            // chiếc xe
-           // chiếc xe
             Positioned(
               left: dx - scooterSize / 2,
               top: top,
-              child: ScooterIcon(size: scooterSize), // 👈 dùng PNG của bạn
+              child: ScooterIcon(size: scooterSize),
             ),
           ],
         ),
@@ -206,7 +300,6 @@ class _ProgressScooterBar extends StatelessWidget {
     });
   }
 }
-
 
 /// Logo chữ “FoodWalk” kiểu gradient + tagline
 class _BrandLockup extends StatelessWidget {
@@ -252,10 +345,14 @@ class _GradientText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (Rect bounds) =>
-          gradient.createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
-      child: Text(text, style: style.copyWith(color: Colors.white)),
-    );
+    return LayoutBuilder(builder: (_, c) {
+      final shader = gradient.createShader(Offset.zero & Size(c.maxWidth, style.fontSize ?? 14));
+      return Text(
+        text,
+        style: style.copyWith(
+          foreground: Paint()..shader = shader,
+        ),
+      );
+    });
   }
 }

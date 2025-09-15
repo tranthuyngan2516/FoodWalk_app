@@ -1,0 +1,120 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    // ================================
+    // SIMULATOR: iPhone 16 Plus (iOS 18.5)
+    // UDID: FD1A44FC-AC43-44B2-9164-9279642ABB74
+    // ================================
+    {
+      "name": "customer (debug, Simulator iPhone 16 Plus)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/customer",
+      "program": "lib/main.dart",
+      "deviceId": "FD1A44FC-AC43-44B2-9164-9279642ABB74"
+    },
+    {
+      "name": "customer (profile, Simulator iPhone 16 Plus)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/customer",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "deviceId": "FD1A44FC-AC43-44B2-9164-9279642ABB74"
+    },
+    {
+      "name": "customer (release, Simulator iPhone 16 Plus)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/customer",
+      "program": "lib/main.dart",
+      "flutterMode": "release",
+      "deviceId": "FD1A44FC-AC43-44B2-9164-9279642ABB74"
+    },
+
+    {
+      "name": "driver (debug, Simulator iPhone 16 Plus)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driver",
+      "program": "lib/main.dart",
+      "deviceId": "FD1A44FC-AC43-44B2-9164-9279642ABB74"
+    },
+    {
+      "name": "driver (profile, Simulator iPhone 16 Plus)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driver",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "deviceId": "FD1A44FC-AC43-44B2-9164-9279642ABB74"
+    },
+    {
+      "name": "driver (release, Simulator iPhone 16 Plus)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driver",
+      "program": "lib/main.dart",
+      "flutterMode": "release",
+      "deviceId": "FD1A44FC-AC43-44B2-9164-9279642ABB74"
+    },
+
+    // ================================
+    // REAL DEVICE: iPhone of Ngan (iOS 18.4)
+    // UDID: 00008101-0006613A1499A01E
+    // ================================
+    {
+      "name": "customer (debug, iPhone thật)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/customer",
+      "program": "lib/main.dart",
+      "deviceId": "00008101-0006613A1499A01E"
+    },
+    {
+      "name": "customer (profile, iPhone thật)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/customer",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "deviceId": "00008101-0006613A1499A01E"
+    },
+    {
+      "name": "customer (release, iPhone thật)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/customer",
+      "program": "lib/main.dart",
+      "flutterMode": "release",
+      "deviceId": "00008101-0006613A1499A01E"
+    },
+
+    {
+      "name": "driver (debug, iPhone thật)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driver",
+      "program": "lib/main.dart",
+      "deviceId": "00008101-0006613A1499A01E"
+    },
+    {
+      "name": "driver (profile, iPhone thật)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driver",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "deviceId": "00008101-0006613A1499A01E"
+    },
+    {
+      "name": "driver (release, iPhone thật)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/driver",
+      "program": "lib/main.dart",
+      "flutterMode": "release",
+      "deviceId": "00008101-0006613A1499A01E"
+    }
+  ]
+}

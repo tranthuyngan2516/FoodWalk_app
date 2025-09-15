@@ -75,20 +75,6 @@ class _BootstrapState extends State<_Bootstrap> {
     _firstLaunch = FirstRunStore().isFirstLaunch();
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return FutureBuilder<bool>(
-  //     future: _firstLaunch,
-  //     builder: (context, snap) {
-  //       if (!snap.hasData) {
-  //         return const Scaffold(body: Center(child: CircularProgressIndicator()));
-  //       }
-  //       final first = snap.data!;
-  //       return first ? const WelcomeScreen() : const HomeScreen();
-  //     },
-  //   );
-  // }
-
 
   @override
   Widget build(BuildContext context) {

@@ -45,5 +45,18 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Cho iOS biết lý do dùng mạng cục bộ -->
+<key>NSLocalNetworkUsageDescription</key>
+<string>App dùng mạng cục bộ để kết nối công cụ phát triển (debug/hot reload).</string>
+
+<!-- Khai báo các dịch vụ Bonjour mà Dart/Flutter dùng để quảng bá VM Service -->
+<key>NSBonjourServices</key>
+<array>
+  <string>_dartobservatory._tcp</string>
+  <string>_dartVmService._tcp</string>
+  <string>_flutterObservatory._tcp</string>
+</array>
+
 </dict>
 </plist>
